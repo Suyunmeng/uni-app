@@ -5,13 +5,23 @@ import replace from '@rollup/plugin-replace'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import babel from '@rollup/plugin-babel'
-import { cssTarget } from '@dcloudio/uni-cli-shared'
+import {
+  cssTarget,
+  initPreContext,
+  uniPrePlugin,
+} from '@dcloudio/uni-cli-shared'
 import { isAppIOSUVueNativeTag } from '@dcloudio/uni-shared'
 import autoprefixer from 'autoprefixer'
+import { uts2ts } from '../../scripts/ext-api'
+
+import { initUniAppIosCssPlugin } from '@dcloudio/uni-app-uts'
 
 function resolve(file: string) {
   return path.resolve(__dirname, file)
 }
+
+process.env.UNI_APP_X = 'true'
+initPreContext('app', {}, 'app-ios', true)
 
 const rollupPlugins = [
   replace({
@@ -109,7 +119,16 @@ export default defineConfig({
     },
   },
   plugins: [
+    uniPrePlugin({} as any, { include: ['**/*.vue'] }),
+    {
+      name: 'uni-x:ios',
+      configResolved(config) {
+        initUniAppIosCssPlugin(config)
+      },
+    },
+    uts2ts({ target: 'uni-app-plus', platform: 'app-ios' }),
     vue({
+      customElement: true,
       template: {
         compilerOptions: {
           isCustomElement: isAppIOSUVueNativeTag,
